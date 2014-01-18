@@ -7,19 +7,24 @@ import java.util.ArrayList;
 import org.apache.commons.io.FileUtils;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
 import android.widget.AdapterView.OnItemLongClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.Toast;
 
 public class TodoActivity extends Activity {
 	ArrayList<String> items;
 	ArrayAdapter<String> itemsAdapter;
 	ListView lvItems;
+	
+	private final int REQUEST_CODE = 20;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,6 +52,28 @@ public class TodoActivity extends Activity {
     			return true;
     		}
     	});
+    	lvItems.setOnItemClickListener(new OnItemClickListener() {
+    		@Override
+    		public void onItemClick(AdapterView<?> aView, View item, int pos, long id) {
+    			Intent i = new Intent(TodoActivity.this, EditItemActivity.class);
+    			
+    			i.putExtra("etItemEntry", items.get(pos).toString());
+    			i.putExtra("pos", pos);
+    			startActivityForResult(i, REQUEST_CODE);
+    		}
+    	});
+    }
+    
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+    	if(resultCode == RESULT_OK && requestCode == REQUEST_CODE) {
+    		int pos = data.getExtras().getInt("updatePos");
+    		String updatedText = data.getExtras().getString("updateText"); 
+    		items.set(pos, updatedText);
+    		itemsAdapter.notifyDataSetChanged();
+    		Toast.makeText(this, "Updated!", Toast.LENGTH_SHORT).show();
+    		saveItems();
+    	}
     }
     
     private void readItems() {
